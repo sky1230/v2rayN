@@ -19,3 +19,7 @@ A V2Ray client for Windows, support [Xray core](https://github.com/XTLS/Xray-cor
 
 ### Telegram Channel
 [github_2dust](https://t.me/github_2dust)
+
+
+###bug
+V6.17版本会自动删除 clone 的节点
