@@ -1,10 +1,5 @@
 ﻿using PacLib;
-using System.Diagnostics;
-using System.IO;
-using System.Text;
 using v2rayN.Mode;
-using v2rayN.Properties;
-using v2rayN.Tool;
 
 namespace v2rayN.Handler
 {
@@ -20,9 +15,8 @@ namespace v2rayN.Handler
         //  <proxy-server><CR-LF>
         //  <bypass-list><CR-LF>
         //  <pac-url>
-        private static SysproxyConfig? _userSettings = null;
 
-        enum RET_ERRORS : int
+        private enum RET_ERRORS : int
         {
             RET_NO_ERROR = 0,
             INVALID_FORMAT = 1,
@@ -34,17 +28,7 @@ namespace v2rayN.Handler
 
         static SysProxyHandle()
         {
-            try
-            {
-                FileManager.UncompressFile(Utils.GetTempPath("sysproxy.exe"),
-                    Environment.Is64BitOperatingSystem ? Resources.sysproxy64_exe : Resources.sysproxy_exe);
-            }
-            catch (IOException ex)
-            {
-                Utils.SaveLog(ex.Message, ex);
-            }
         }
-
 
         public static bool UpdateSysProxy(Config config, bool forceDisable)
         {
@@ -80,11 +64,11 @@ namespace v2rayN.Handler
                             .Replace("{http_port}", port.ToString())
                             .Replace("{socks_port}", portSocks.ToString());
                     }
-                    SetIEProxy(true, strProxy, strExceptions);
+                    ProxySetting.SetProxy(strProxy, strExceptions, 2); // set a named proxy
                 }
                 else if (type == ESysProxyType.ForcedClear)
                 {
-                    ResetIEProxy();
+                    ProxySetting.UnsetProxy(); // set to no proxy
                 }
                 else if (type == ESysProxyType.Unchanged)
                 {
@@ -93,7 +77,7 @@ namespace v2rayN.Handler
                 {
                     PacHandler.Start(Utils.GetConfigPath(), port, portPac);
                     var strProxy = $"{Global.httpProtocol}{Global.Loopback}:{portPac}/pac?t={DateTime.Now.Ticks}";
-                    SetIEProxy(false, strProxy, "");
+                    ProxySetting.SetProxy(strProxy, "", 4); // use pac script url for auto-config proxy
                 }
 
                 if (type != ESysProxyType.Pac)
@@ -119,119 +103,5 @@ namespace v2rayN.Handler
             {
             }
         }
-
-
-        public static void SetIEProxy(bool global, string strProxy, string strExceptions)
-        {
-            string arguments = global
-                ? $"global {strProxy} {strExceptions}"
-                : $"pac {strProxy}";
-
-            ExecSysproxy(arguments);
-        }
-
-        // set system proxy to 1 (null) (null) (null)
-        public static bool ResetIEProxy()
-        {
-            try
-            {
-                // clear user-wininet.json
-                //_userSettings = new SysproxyConfig();
-                //Save();
-                // clear system setting
-                ExecSysproxy("set 1 - - -");
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        private static void ExecSysproxy(string arguments)
-        {
-            // using event to avoid hanging when redirect standard output/error
-            // ref: https://stackoverflow.com/questions/139593/processstartinfo-hanging-on-waitforexit-why
-            // and http://blog.csdn.net/zhangweixing0/article/details/7356841
-            using AutoResetEvent outputWaitHandle = new(false);
-            using AutoResetEvent errorWaitHandle = new(false);
-            using Process process = new();
-
-            // Configure the process using the StartInfo properties.
-            process.StartInfo.FileName = Utils.GetTempPath("sysproxy.exe");
-            process.StartInfo.Arguments = arguments;
-            process.StartInfo.WorkingDirectory = Utils.GetTempPath();
-            process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            process.StartInfo.UseShellExecute = false;
-            process.StartInfo.RedirectStandardError = true;
-            process.StartInfo.RedirectStandardOutput = true;
-
-            // Need to provide encoding info, or output/error strings we got will be wrong.
-            process.StartInfo.StandardOutputEncoding = Encoding.Unicode;
-            process.StartInfo.StandardErrorEncoding = Encoding.Unicode;
-
-            process.StartInfo.CreateNoWindow = true;
-
-            StringBuilder output = new(1024);
-            StringBuilder error = new(1024);
-
-            process.OutputDataReceived += (sender, e) =>
-            {
-                if (e.Data == null)
-                {
-                    outputWaitHandle.Set();
-                }
-                else
-                {
-                    output.AppendLine(e.Data);
-                }
-            };
-            process.ErrorDataReceived += (sender, e) =>
-            {
-                if (e.Data == null)
-                {
-                    errorWaitHandle.Set();
-                }
-                else
-                {
-                    error.AppendLine(e.Data);
-                }
-            };
-            try
-            {
-                process.Start();
-
-                process.BeginErrorReadLine();
-                process.BeginOutputReadLine();
-
-                process.WaitForExit();
-            }
-            catch (System.ComponentModel.Win32Exception e)
-            {
-
-                // log the arguments
-                throw new Exception(process.StartInfo.Arguments);
-            }
-            string stderr = error.ToString();
-            string stdout = output.ToString();
-
-            int exitCode = process.ExitCode;
-            if (exitCode != (int)RET_ERRORS.RET_NO_ERROR)
-            {
-                throw new Exception(stderr);
-            }
-
-            //if (arguments == "query")
-            //{
-            //    if (stdout.IsNullOrWhiteSpace() || stdout.IsNullOrEmpty())
-            //    {
-            //        throw new Exception("failed to query wininet settings");
-            //    }
-            //    _queryStr = stdout;
-            //}
-        }
-
-
     }
 }

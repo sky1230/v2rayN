@@ -21,7 +21,6 @@ namespace v2rayN.ViewModels
 
         public ReactiveCommand<Unit, Unit> SaveCmd { get; }
 
-
         public AddServerViewModel(ProfileItem profileItem, Window view)
         {
             _config = LazyConfig.Instance.GetConfig();
@@ -130,17 +129,25 @@ namespace v2rayN.ViewModels
                 case EConfigType.VMess:
                     ret = ConfigHandler.AddServer(ref _config, item);
                     break;
+
                 case EConfigType.Shadowsocks:
                     ret = ConfigHandler.AddShadowsocksServer(ref _config, item);
                     break;
+
                 case EConfigType.Socks:
                     ret = ConfigHandler.AddSocksServer(ref _config, item);
                     break;
+
                 case EConfigType.VLESS:
                     ret = ConfigHandler.AddVlessServer(ref _config, item);
                     break;
+
                 case EConfigType.Trojan:
                     ret = ConfigHandler.AddTrojanServer(ref _config, item);
+                    break;
+
+                case EConfigType.Hysteria2:
+                    ret = ConfigHandler.AddHysteria2Server(ref _config, item);
                     break;
             }
 

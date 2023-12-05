@@ -28,6 +28,7 @@ namespace v2rayN.Mode
         }
 
         #region function
+
         public string GetSummary()
         {
             string summary = string.Format("[{0}] ", (configType).ToString());
@@ -52,8 +53,10 @@ namespace v2rayN.Mode
                 case EConfigType.Socks:
                 case EConfigType.VLESS:
                 case EConfigType.Trojan:
+                case EConfigType.Hysteria2:
                     summary += string.Format("{0}({1}:{2})", remarks, addr, port);
                     break;
+
                 default:
                     summary += string.Format("{0}", remarks);
                     break;
@@ -82,7 +85,7 @@ namespace v2rayN.Mode
             return network.TrimEx();
         }
 
-        #endregion
+        #endregion function
 
         [PrimaryKey]
         public string indexId { get; set; }
@@ -91,6 +94,7 @@ namespace v2rayN.Mode
         /// config type(1=normal,2=custom)
         /// </summary>
         public EConfigType configType { get; set; }
+
         /// <summary>
         /// 版本(现在=2)
         /// </summary>
@@ -100,28 +104,34 @@ namespace v2rayN.Mode
         /// 远程服务器地址
         /// </summary>
         public string address { get; set; }
+
         /// <summary>
         /// 远程服务器端口
         /// </summary>
         public int port { get; set; }
+
         /// <summary>
         /// 远程服务器ID
         /// </summary>
         public string id { get; set; }
+
         /// <summary>
         /// 远程服务器额外ID
         /// </summary>
         public int alterId { get; set; }
+
         /// <summary>
         /// 本地安全策略
         /// </summary>
         public string security { get; set; }
+
         /// <summary>
         /// tcp,kcp,ws,h2,quic
         /// </summary>
         public string network { get; set; }
+
         /// <summary>
-        /// 备注或别名
+        ///
         /// </summary>
         public string remarks { get; set; }
 
@@ -154,21 +164,23 @@ namespace v2rayN.Mode
         /// SubItem id
         /// </summary>
         public string subid { get; set; }
+
         public bool isSub { get; set; } = true;
 
         /// <summary>
         /// VLESS flow
         /// </summary>
         public string flow { get; set; }
+
         /// <summary>
         /// tls sni
         /// </summary>
         public string sni { get; set; }
+
         /// <summary>
         /// tls alpn
         /// </summary>
         public string alpn { get; set; } = string.Empty;
-
 
         public ECoreType? coreType { get; set; }
 
